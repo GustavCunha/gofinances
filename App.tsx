@@ -13,6 +13,7 @@ import theme from './src/global/styles/theme';
 
 import { Dashboard } from './src/screens/Dashboard/Dashboard';
 import { Register } from './src/screens/Register/Register';
+import { CategoryModal } from './src/screens/CategoryModal/CategoryModal';
 
 export default function App() {
   const [fontLoaded] = useFonts({
@@ -29,5 +30,6 @@ export default function App() {
     <ThemeProvider theme={theme}>
       {/* <Dashboard/> */}
       <Register />
+      {/* <CategoryModal /> */}
     </ThemeProvider>
   )}
