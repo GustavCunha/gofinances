@@ -11,9 +11,8 @@ import {
 
 import theme from './src/global/styles/theme';
 
-import { Dashboard } from './src/screens/Dashboard/Dashboard';
-import { Register } from './src/screens/Register/Register';
-import { CategoryModal } from './src/screens/CategoryModal/CategoryModal';
+import { NavigationContainer } from '@react-navigation/native';
+import { AppRoutes } from './src/routes/app.routes';
 
 export default function App() {
   const [fontLoaded] = useFonts({
@@ -28,8 +27,8 @@ export default function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      {/* <Dashboard/> */}
-      <Register />
-      {/* <CategoryModal /> */}
+      <NavigationContainer>
+        <AppRoutes />
+      </NavigationContainer>
     </ThemeProvider>
   )}
