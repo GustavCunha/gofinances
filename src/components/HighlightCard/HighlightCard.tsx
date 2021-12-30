@@ -32,7 +32,7 @@ export function HighlightCard({title, amount, lastTransaction, type}: Props) {
 
             <Content>
                 <Amount type={type}>{amount}</Amount>
-                <LastTransaction type={type}>Última entrada dia 13 de abril</LastTransaction>
+                <LastTransaction type={type}>{lastTransaction}</LastTransaction>
             </Content>
         </Container>
     )

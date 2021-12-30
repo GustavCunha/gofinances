@@ -18,7 +18,7 @@ export const Header = styled.View`
 
 export const Title = styled.Text`
     color: ${({theme}) => theme.colors.shape};
-    font-family: ${({theme}) => theme.fonts.regular}
+    font-family: ${({theme}) => theme.fonts.regular};
     font-size: ${RFValue(18)}px;
 `;
 

@@ -1,9 +1,12 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { HighlightCard } from '../../components/HighlightCard/HighlightCard';
 import { TransactionCard, TransactionCardProps } from '../../components/TransactionCard/TransactionCard';
+
+import theme from '../../global/styles/theme';
 
 import { 
     Container, 
@@ -22,8 +25,7 @@ import {
     UserName,
     UserWrapper,
 } from './Dashboard.styles';
-import { ActivityIndicator } from 'react-native';
-import theme from '../../global/styles/theme';
+import { Load } from '../../components/Load/Load';
 
 export interface DataListProps extends TransactionCardProps {
     id: string;
@@ -31,6 +33,7 @@ export interface DataListProps extends TransactionCardProps {
 
 interface HighlightProps {
     amount: string;
+    lastTransaction: string;
 }
 
 interface HighlightData {
@@ -43,6 +46,15 @@ export function Dashboard() {
     const [isLoading, setIsLoading] = useState(true);
     const [transactions, setTransactions] = useState<DataListProps[]>([]);
     const [highlightData, setHighlightData] = useState<HighlightData>({} as HighlightData);
+
+    function getLastTransactionDate(collection: DataListProps[], type: 'positive' | 'negative'){
+        const lastTransaction = new Date(
+        Math.max.apply(Math, collection
+        .filter((transaction) => transaction.type === type)
+        .map((transaction) => new Date(transaction.date).getTime())));
+
+        return `${lastTransaction.getDate()} de ${lastTransaction.toLocaleString('pt-BR', {month: 'long'})} de ${lastTransaction.getFullYear()}`; 
+    }
 
     async function loadTransaction() {
         const dataKey = '@gofinances:transactions';
@@ -84,21 +96,35 @@ export function Dashboard() {
         });
 
         setTransactions(transactionsFormatted);
+
+        const lastTransactionsEntries = getLastTransactionDate(transactions, 'positive');
+        const lastTransactionsExits = getLastTransactionDate(transactions, 'negative');
+        const totalInterval = `01 a ${lastTransactionsExits}`;
+
         const total = entriesTotal - exitsTotal;
 
         setHighlightData({
-            entries: {amount: entriesTotal.toLocaleString('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            })},
-            exits: {amount: exitsTotal.toLocaleString('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            })},
-            total: {amount: total.toLocaleString('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-            })}
+            entries: {
+                amount: entriesTotal.toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                }),
+                lastTransaction: `Última entrada dia ${lastTransactionsEntries}`
+            },
+            exits: {
+                amount: exitsTotal.toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                }),
+                lastTransaction: `Última entrada dia ${lastTransactionsExits}`
+            },
+            total: {
+                amount: total.toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                }),
+                lastTransaction: totalInterval
+            }
         })
         // console.log(transactionsFormatted);
         setIsLoading(false);
@@ -125,12 +151,7 @@ export function Dashboard() {
     return (
         <Container>
             {isLoading ? 
-                <LoadContainer>
-                    <ActivityIndicator 
-                        color={theme.colors.primary} 
-                        size='large'
-                    /> 
-                </LoadContainer>
+                <Load />
             :
                 <>
                 <Header>
@@ -154,16 +175,19 @@ export function Dashboard() {
                         title='Entradas'
                         amount={highlightData.entries.amount} 
                         type='up'
+                        lastTransaction={highlightData.entries.lastTransaction}
                     />
                     <HighlightCard 
                         title='Saídas' 
                         amount={highlightData.exits.amount}
                         type='down'
+                        lastTransaction={highlightData.exits.lastTransaction}
                     />
                     <HighlightCard 
                         title='Total'
                         amount={highlightData.total.amount}
                         type='total'
+                        lastTransaction={highlightData.total.lastTransaction}
                     />
                 </HighlightCards>
 
