@@ -1,19 +1,19 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import { ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { useTheme } from 'styled-components';
+import { useAuth } from '../../hooks/auth';
+
 import { HighlightCard } from '../../components/HighlightCard/HighlightCard';
 import { TransactionCard, TransactionCardProps } from '../../components/TransactionCard/TransactionCard';
-
-import theme from '../../global/styles/theme';
+import { Load } from '../../components/Load/Load';
 
 import { 
     Container, 
     Header,
     HighlightCards,
     Icon,
-    LoadContainer,
     LogoutButton,
     Photo,
     Title,
@@ -25,7 +25,6 @@ import {
     UserName,
     UserWrapper,
 } from './Dashboard.styles';
-import { Load } from '../../components/Load/Load';
 
 export interface DataListProps extends TransactionCardProps {
     id: string;
@@ -47,17 +46,25 @@ export function Dashboard() {
     const [transactions, setTransactions] = useState<DataListProps[]>([]);
     const [highlightData, setHighlightData] = useState<HighlightData>({} as HighlightData);
 
+    const theme = useTheme();
+    const {signOut, user} = useAuth();
+
     function getLastTransactionDate(collection: DataListProps[], type: 'positive' | 'negative'){
+        const collectionFilttered = collection.filter((transaction) => transaction.type === type);
+
+        if(collectionFilttered.length === 0) {
+            return 0;
+        }
+
         const lastTransaction = new Date(
-        Math.max.apply(Math, collection
-        .filter((transaction) => transaction.type === type)
+        Math.max.apply(Math, collectionFilttered
         .map((transaction) => new Date(transaction.date).getTime())));
 
         return `${lastTransaction.getDate()} de ${lastTransaction.toLocaleString('pt-BR', {month: 'long'})} de ${lastTransaction.getFullYear()}`; 
     }
 
-    async function loadTransaction() {
-        const dataKey = '@gofinances:transactions';
+    async function loadTransactions() {
+        const dataKey = `@gofinances:transactions_user:${user.id}`;
         const response = await AsyncStorage.getItem(dataKey);
         const transactions = response ? JSON.parse(response) : [];
 
@@ -99,7 +106,7 @@ export function Dashboard() {
 
         const lastTransactionsEntries = getLastTransactionDate(transactions, 'positive');
         const lastTransactionsExits = getLastTransactionDate(transactions, 'negative');
-        const totalInterval = `01 a ${lastTransactionsExits}`;
+        const totalInterval = lastTransactionsExits === 0 ? 'Não há transações' :  `01 a ${lastTransactionsExits}`;
 
         const total = entriesTotal - exitsTotal;
 
@@ -109,14 +116,14 @@ export function Dashboard() {
                     style: 'currency',
                     currency: 'BRL'
                 }),
-                lastTransaction: `Última entrada dia ${lastTransactionsEntries}`
+                lastTransaction: lastTransactionsEntries === 0 ? 'Não há transações' : `Última entrada dia ${lastTransactionsEntries}`
             },
             exits: {
                 amount: exitsTotal.toLocaleString('pt-BR', {
                     style: 'currency',
                     currency: 'BRL'
                 }),
-                lastTransaction: `Última entrada dia ${lastTransactionsExits}`
+                lastTransaction:  lastTransactionsExits === 0 ? 'Não há transações' : `Última entrada dia ${lastTransactionsExits}`
             },
             total: {
                 amount: total.toLocaleString('pt-BR', {
@@ -134,7 +141,7 @@ export function Dashboard() {
         let isActive = true;
 
         if(isActive) {
-            loadTransaction();
+            loadTransactions();
         }
 
         return () => {
@@ -144,7 +151,7 @@ export function Dashboard() {
 
     useFocusEffect(
         useCallback(() => {
-            loadTransaction();
+            loadTransactions();
         }, [])
     );
 
@@ -157,14 +164,14 @@ export function Dashboard() {
                 <Header>
                     <UserWrapper>
                         <UserInfo>
-                            <Photo source={{uri: 'https://avatars.githubusercontent.com/u/55558998?s=96&v=4'}}/>
+                            <Photo source={{uri: user.photo}}/>
                             <User>
                                 <UserGreeting>Olá,</UserGreeting>
-                                <UserName>Gustavo</UserName>                 
+                                <UserName>{user.name}</UserName>                 
                             </User>    
                         </UserInfo> 
 
-                        <LogoutButton onPress={()=>{}}>
+                        <LogoutButton onPress={signOut}>
                             <Icon name='power'/>
                         </LogoutButton>
                     </UserWrapper>
