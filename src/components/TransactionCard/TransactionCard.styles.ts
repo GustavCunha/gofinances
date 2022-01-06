@@ -1,6 +1,7 @@
 import styled from "styled-components/native";
 import {Feather} from '@expo/vector-icons';
 import { RFValue } from "react-native-responsive-fontsize";
+import { BorderlessButton } from "react-native-gesture-handler";
 
 interface TransactionProps {
     type: 'positive' | 'negative';
@@ -54,4 +55,22 @@ export const Date = styled.Text`
     font-size: ${RFValue(14)}px;
     font-family: ${({theme}) => theme.fonts.regular};
     color: ${({theme}) => theme.colors.text};
+`;
+
+export const ButtonRemove = styled(BorderlessButton)`
+    width: 100px;
+    height: 85%;
+    background-color: ${({theme}) => theme.colors.attention_light};
+    border-radius: 10px;
+    margin: 5px 0;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    right: 20px;
+    padding-left: 15px;
+`;
+
+export const IconButton = styled(Feather)`
+    color: ${({theme}) => theme.colors.shape};
+    font-size: ${RFValue(26)}px;
 `;

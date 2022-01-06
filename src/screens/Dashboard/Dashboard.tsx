@@ -25,6 +25,8 @@ import {
     UserName,
     UserWrapper,
 } from './Dashboard.styles';
+import { Alert } from 'react-native';
+import { removeTransaction } from '../../libs/storages';
 
 export interface DataListProps extends TransactionCardProps {
     id: string;
@@ -137,6 +139,28 @@ export function Dashboard() {
         setIsLoading(false);
     }
 
+    function handleRemove(transaction: DataListProps) {
+        Alert.alert('Confirmação ❓', 'Deseja apagar essa transação?', [
+            {
+                text: 'Não', 
+                style: 'cancel'
+            }, 
+            {
+                text: 'Sim', 
+                onPress: async () => {
+                    try {
+                        await removeTransaction(transaction.id);
+
+                        setTransactions((oldData) => 
+                            oldData.filter((item) => item.id !== transaction.id));
+                    } catch (error) {
+                        Alert.alert('Ops 😱','Não foi possível apagar a transação. 😞');
+                    }
+                }
+            }
+        ])
+    }
+
     useEffect(() => {
         let isActive = true;
 
@@ -147,7 +171,7 @@ export function Dashboard() {
         return () => {
             isActive = false
         }
-    }, []);
+    }, [transactions]);
 
     useFocusEffect(
         useCallback(() => {
@@ -203,7 +227,12 @@ export function Dashboard() {
 
                     <TransactionList 
                         data={transactions}
-                        renderItem={({item}) => <TransactionCard data={item}/>}
+                        renderItem={({item}) => 
+                            <TransactionCard 
+                                data={item} 
+                                handleRemove={() => handleRemove(item)}
+                            />
+                        }
                         keyExtractor={item => item.id}
                     />
 

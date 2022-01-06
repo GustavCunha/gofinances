@@ -23,6 +23,7 @@ import {
     Title, 
     TransactionsType
 } from './Register.styles';
+import { DateField } from '../../components/Forms/DateField/DateField';
 
 const schema = Yup.object().shape({
     name: Yup.string().required('Nome é obrigatório'),
@@ -31,6 +32,11 @@ const schema = Yup.object().shape({
         .typeError('Informe um valor númerico')
         .positive('O valor não pode ser negativo')
         .required('Valor é obrigatório'),
+    date: Yup
+        .date()
+        .max(new Date())
+        .default(new Date())
+        .required('Data é obrigatório')
 })
 
 interface FormData {
@@ -41,6 +47,7 @@ interface FormData {
 export function Register() {
     const [transactionType, setTransactionType] = useState('');
     const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+    const [date, setDate] = useState(new Date());    
 
     const {user} = useAuth();
 
@@ -72,6 +79,12 @@ export function Register() {
         setCategoryModalOpen(false);
     } 
 
+    function onChangeDate(selectedDate: Date) {
+        const currentDate = selectedDate || date;
+        console.log(selectedDate);
+        setDate(currentDate);
+    }
+
     async function handleRegister(form: FormData) {
         if(!transactionType) {
             return Alert.alert('Ops 😕','Selecione o tipo da transação');
@@ -86,8 +99,10 @@ export function Register() {
             amount: form.amount,
             type: transactionType,
             category: category.key,
-            date: new Date(),
+            date
         }
+
+        // console.log(newTransaction);
         
         try {
             const dataKey = `@gofinances:transactions_user:${user.id}`;
@@ -138,6 +153,11 @@ export function Register() {
                             placeholder='Preço'
                             keyboardType='numeric'
                             error={errors.amount && errors.amount.message}
+                        />
+
+                        <DateField 
+                            value={date}
+                            onChange={onChangeDate}
                         />
                         <TransactionsType>
                             <TransactionTypeButton 
